@@ -68,4 +68,5 @@
      (constantly
        {:status 404
         :headers {"Content-Type" "text/plain"}
-        :body "the page does not exist"})) request))
+        :body "the page does not exist"})) 
+   request))
