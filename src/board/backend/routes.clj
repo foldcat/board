@@ -27,7 +27,6 @@
    :middleware [wrap-muuntaja/format-negotiate-middleware
                 wrap-muuntaja/format-middleware
                 wrap-exception
-                ;; reitit-coercion/coerce-exceptions-middleware
                 reitit-coercion/coerce-request-middleware
                 reitit-coercion/coerce-response-middleware]})
 
