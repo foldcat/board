@@ -7,7 +7,7 @@
     [board.backend.handlers.register :as register]
     [board.backend.handlers.upload :as upload]
     [board.backend.rate-limit :as limit]
-    [cheshire.core :as json]
+    [jsonista.core :as json]
     [muuntaja.core :as muuntaja-core]
     [reitit.coercion :as coercion]
     [reitit.coercion.malli]
@@ -92,7 +92,10 @@
      (app {:request-method :post
            :uri "/api/auth/login"})
      :body 
-     #(json/parse-string 
+     #(json/read-value 
         (apply str (map char (.readAllBytes %)))))
    (catch Exception e 
-     (ex-data e))))
+     (ex-data e)))
+  (identity muuntaja-core/default-options)
+  (muuntaja-core/decode "application/edn" 
+                        "{:x 12}"))
