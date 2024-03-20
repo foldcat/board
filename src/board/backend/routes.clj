@@ -1,12 +1,14 @@
 (ns board.backend.routes
   (:require
-    [board.backend.error :refer [wrap-exception]]
+    [board.backend.error :refer [wrap-exception wrap-malform]]
     [board.backend.handlers.dummy :as dummy]
     [board.backend.handlers.echo :as echo]
     [board.backend.handlers.login :as login]
     [board.backend.handlers.register :as register]
     [board.backend.handlers.upload :as upload]
     [board.backend.rate-limit :as limit]
+    [board.util.pformat :refer [pformat]]
+    [clojure.tools.logging :as log]
     [jsonista.core :as json]
     [muuntaja.core :as muuntaja-core]
     [reitit.coercion :as coercion]
@@ -15,16 +17,15 @@
     [reitit.ring :refer [ring-handler router]]
     [reitit.ring.coercion :as reitit-coercion]
     [reitit.ring.middleware.multipart :refer [multipart-middleware]]
-    [reitit.ring.middleware.muuntaja :as wrap-muuntaja]
-    [ring.middleware.multipart-params :refer [wrap-multipart-params]]
-    [ring.middleware.params :refer [wrap-params]]))
+    [reitit.ring.middleware.muuntaja :as wrap-muuntaja]))
 
 
 (def coercion
   {:muuntaja muuntaja-core/instance
    :compile coercion/compile-request-coercers
    :coercion reitit-coercion-spec/coercion
-   :middleware [wrap-muuntaja/format-negotiate-middleware
+   :middleware [wrap-malform
+                wrap-muuntaja/format-negotiate-middleware
                 wrap-muuntaja/format-middleware
                 wrap-exception
                 reitit-coercion/coerce-request-middleware
@@ -65,8 +66,7 @@
          ["/post"
           ["/new"
            {:post {:handler #'upload/upload-handler
-                   :middleware [wrap-params
-                                wrap-multipart-params]}}]]]
+                   :middleware [multipart-middleware]}}]]]
 
         ["/debug"
          ["/dummy" {:get {:handler #'dummy/dummy-handler}}]
@@ -82,6 +82,14 @@
         :headers {"Content-Type" "text/plain"}
         :body "the page does not exist"}))
    request))
+
+
+(defn app-
+  [request]
+  (try
+    (app request)
+    (catch Exception e
+      (log/info (pformat (ex-data e))))))
 
 
 (comment 

@@ -1,8 +1,54 @@
 (ns board.backend.error
   (:require
+    [board.util.pformat :refer [pformat]]
+    [clojure.tools.logging :as log]
     [malli.core :as malli]
     [malli.error :as malli-error]
+    [muuntaja.core :as muuntaja]
     [reitit.ring.middleware.exception :as exception]))
+
+
+(defn handle-invalid-data
+  "execute when data doesn't match schema"
+  [exception _request]
+  (let [data (ex-data exception)
+        schema (:schema data)
+        value (:value data)
+
+        details
+        (-> schema
+            (malli/explain value)
+            malli-error/with-spell-checking
+            malli-error/humanize)]
+    (log/info (pformat (ex-data exception)))
+    {:status 400
+     :body
+     {:success false
+      :message "bad request format"
+      :details details}}))
+
+
+(defn handle-malformed-request
+  [_exception request]
+  (log/info (pformat request))
+  (let [accept (get (:headers request) "accept")
+
+        processed
+        (if (#{"application/json"
+               "application/edn"
+               "application/transit+msgpack"
+               "application/transit+json"}
+             accept)
+          accept
+          "application/json")]
+
+    {:status 400
+     :headers {"Content-Type" "application/json"}
+     :body
+     (muuntaja/encode
+       processed
+       {:success false
+        :message "malformed request"})}))
 
 
 (def wrap-exception
@@ -10,24 +56,12 @@
     (merge
       exception/default-handlers
       {:reitit.coercion/request-coercion
-       (fn [exception _request]
-         (let [data
-               (-> exception
-                   Throwable->map
-                   :via
-                   first
-                   :data)
+       handle-invalid-data})))
 
-               schema (:schema data)
-               value (:value data)
 
-               details
-               (-> schema
-                   (malli/explain value)
-                   malli-error/with-spell-checking
-                   malli-error/humanize)]
-           {:status 400
-            :body
-            {:success false
-             :message "bad request format"
-             :details details}}))})))
+(def wrap-malform
+  (exception/create-exception-middleware
+    (merge
+      exception/default-handlers
+      {:muuntaja/decode
+       handle-malformed-request})))
