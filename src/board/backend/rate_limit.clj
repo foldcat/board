@@ -56,4 +56,4 @@
 
 (defmethod wrap-limit :default
   [request]
-  (log/info (pformat request)))
+  nil)

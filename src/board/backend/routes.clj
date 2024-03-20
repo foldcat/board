@@ -1,11 +1,13 @@
 (ns board.backend.routes
   (:require
+    [board.backend.error :refer [wrap-exception]]
     [board.backend.handlers.dummy :as dummy]
     [board.backend.handlers.echo :as echo]
     [board.backend.handlers.login :as login]
     [board.backend.handlers.register :as register]
     [board.backend.handlers.upload :as upload]
     [board.backend.rate-limit :as limit]
+    [cheshire.core :as json]
     [muuntaja.core :as muuntaja-core]
     [reitit.coercion :as coercion]
     [reitit.coercion.malli]
@@ -24,7 +26,8 @@
    :coercion reitit-coercion-spec/coercion
    :middleware [wrap-muuntaja/format-negotiate-middleware
                 wrap-muuntaja/format-middleware
-                reitit-coercion/coerce-exceptions-middleware
+                wrap-exception
+                ;; reitit-coercion/coerce-exceptions-middleware
                 reitit-coercion/coerce-request-middleware
                 reitit-coercion/coerce-response-middleware]})
 
@@ -47,8 +50,19 @@
                      [:password :string]
                      [:auto-logout :boolean]]}}}]
           ["/register"
-           {:post {:handler #'register/register-handler}}]]
-
+           {:post {:handler #'register/register-handler
+                   :coercion reitit.coercion.malli/coercion
+                   :parameters
+                   {:body
+                    [:map
+                     [:username :string]
+                     [:email :string]
+                     [:password :string]
+                     [:date-of-birth
+                      [:map
+                       [:year :int]
+                       [:month :int]
+                       [:day :int]]]]}}}]]
          ["/post"
           ["/new"
            {:post {:handler #'upload/upload-handler
@@ -64,9 +78,22 @@
                    :coercion reitit.coercion.malli/coercion
                    :middleware [multipart-middleware]}]]]
        {:data coercion})
-
      (constantly
        {:status 404
         :headers {"Content-Type" "text/plain"}
-        :body "the page does not exist"})) 
+        :body "the page does not exist"}))
    request))
+
+
+(comment 
+  (app {:request-method :post
+        :uri "/api/auth/login"})
+  (try
+   (update
+     (app {:request-method :post
+           :uri "/api/auth/login"})
+     :body 
+     #(json/parse-string 
+        (apply str (map char (.readAllBytes %)))))
+   (catch Exception e 
+     (ex-data e))))

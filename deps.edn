@@ -6,7 +6,6 @@
         fmnoise/flow {:mvn/version "4.2.2"}
         org.suskalo/farolero {:mvn/version "1.5.0"}
         metosin/muuntaja {:mvn/version "0.6.8"}
-        metosin/muuntaja-cheshire {:mvn/version "0.6.8"}
         ring/ring-core {:mvn/version "1.11.0"}
         com.datomic/peer {:mvn/version "1.0.7075"}
         cheshire/cheshire {:mvn/version "5.12.0"}

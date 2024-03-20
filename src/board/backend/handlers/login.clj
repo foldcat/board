@@ -14,32 +14,6 @@
     [malli.util :as malli-util]))
 
 
-(def request-schema
-  [:map
-   [:email :string]
-   [:password :string]
-   [:auto-logout :boolean]])
-
-
-;; TODO isolate this function from register and here
-(defn check-request-format
-  [request]
-  (or (malli/validate
-        request-schema
-        request)
-      (far/error
-        ::invalid-request-format
-        (map->invalid-req
-          {:success false
-           :message "bad request format"
-           :details
-           (-> request-schema
-               malli-util/closed-schema
-               (malli/explain request)
-               malli-error/with-spell-checking
-               malli-error/humanize)}))))
-
-
 (defn get-password
   [request]
   (or (ffirst (users-db/query-password (:email request)))
@@ -80,8 +54,7 @@
   [request]
   (far/handler-case
     (let [data (:body-params request)]
-      (->> (check-request-format data)
-           (then (fn [_] (get-password data)))
+      (->> (get-password data)
            (then #(validate-password (:password data) %))
            (then (fn [_]
                    (generate-session

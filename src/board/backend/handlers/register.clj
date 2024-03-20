@@ -13,36 +13,6 @@
     [malli.util :as malli-util]))
 
 
-(def request-schema
-  [:map
-   [:username :string]
-   [:email :string]
-   [:password :string]
-   [:date-of-birth
-    [:map
-     [:year :int]
-     [:month :int]
-     [:day :int]]]])
-
-
-(defn check-request-format
-  [request]
-  (or (malli/validate
-        request-schema
-        request)
-      (far/error
-        ::invalid-request-format
-        (map->invalid-req
-          {:success false
-           :message "bad request format"
-           :details
-           (-> request-schema
-               malli-util/closed-schema
-               (malli/explain request)
-               malli-error/with-spell-checking
-               malli-error/humanize)}))))
-
-
 (defn username-not-too-popular?
   [request]
   (or (>= 10000 (user-db/gen-identifier
@@ -123,8 +93,7 @@
   (far/handler-case
     (let [data (:body-params request)]
       (log/info (pformat data))
-      (->> (check-request-format data)
-           (then (fn [_] (valid-date? data)))
+      (->> (valid-date? data)
            (then (fn [_] (user-not-too-old? data)))
            (then (fn [_] (email-not-occupied? data)))
            (then (fn [_] (username-not-too-popular? data)))
