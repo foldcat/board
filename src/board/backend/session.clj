@@ -2,7 +2,8 @@
   (:require
     [board.util.vthread :refer [vthread]]
     [farolero.core :as far]
-    [java-time.api :as jt])
+    [java-time.api :as jt]
+    [taoensso.timbre :as log])
   (:import
     (java.security
       SecureRandom)
@@ -14,8 +15,8 @@
   [token ip local-date-time auto-logout? owner])
 
 
-(def keystore (ref []))
-(def amount (ref 0))
+(def keystore (atom []))
+(def amount (atom 0))
 
 
 (defn generate-random-string!
@@ -29,23 +30,24 @@
 
 (defn make-session*
   [date ip auto-logout? owner]
-  (dosync
-    (alter amount inc)
-    (let [token
-          (str
-            @amount
-            (generate-random-string! 32))]
-      (alter
-        keystore
-        #(conj
-           %
-           (->session
-             token
-             ip
-             date
-             auto-logout?
-             owner)))
-      token)))
+  (swap! amount inc)
+  (let [token
+        (str
+          @amount
+          (generate-random-string! 32))]
+    (swap!
+      keystore
+      #(conj
+         %
+         (->session
+           token
+           ip
+           date
+           auto-logout?
+           owner)))
+    (log/info "session generated")
+    (log/info "total session generated:" @amount)
+    token))
 
 
 (def make-session!
@@ -93,8 +95,7 @@
   "removes 1 day old sessoon every 15 minutes"
   []
   (vthread
-    (dosync
-      (alter keystore sweep-keystore))
+    (swap! keystore sweep-keystore)
     (Thread/sleep
       (java.time.Duration/ofMinutes 15))))
 
@@ -102,29 +103,27 @@
 (defn update-session!
   "updates a session's local date time to right now"
   [token]
-  (dosync
-    (if-let [target (first
-                      (filter
-                        #(= token (:token %))
-                        @keystore))]
-      (alter keystore
-             (fn [store]
-               (-> (filter #(not= target %) store)
-                   (conj
-                     (assoc target :local-date-time
-                            (jt/local-date-time)))
-                   vec)))
-      (far/error ::unknown-session))))
+  (if-let [target (first
+                    (filter
+                      #(= token (:token %))
+                      @keystore))]
+    (swap! keystore
+           (fn [store]
+             (-> (filter #(not= target %) store)
+                 (conj
+                   (assoc target :local-date-time
+                          (jt/local-date-time)))
+                 vec)))
+    (far/error ::unknown-session)))
 
 
 (defn void-session!
   "deletes session"
   [token]
-  (dosync
-    (alter
-      keystore
-      (fn [store]
-        (vec (filter #(= token (:token %)) store))))))
+  (swap!
+    keystore
+    (fn [store]
+      (vec (filter #(= token (:token %)) store)))))
 
 
 (defn valid-session?
@@ -151,5 +150,5 @@
   (void-session! token)
   (update-session! token)
   (println @keystore)
-  @keystore
+  (count @keystore)
   (start-sweeper!))

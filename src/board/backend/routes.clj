@@ -8,7 +8,7 @@
     [board.backend.handlers.upload :as upload]
     [board.backend.rate-limit :as limit]
     [board.util.pformat :refer [pformat]]
-    [clojure.tools.logging :as log]
+    [taoensso.timbre :as log]
     [jsonista.core :as json]
     [muuntaja.core :as muuntaja-core]
     [reitit.coercion :as coercion]
@@ -70,13 +70,10 @@
 
         ["/debug"
          ["/dummy" {:get {:handler #'dummy/dummy-handler}}]
-         ["/echo" {:post {:handler #'echo/echo}
-                   :parameters
-                   {:multipart [:map
-                                [:file :any]]}
-                   :coercion reitit.coercion.malli/coercion
-                   :middleware [multipart-middleware]}]]]
+         ["/echo" {:post {:handler #'echo/echo}}]]]
+
        {:data coercion})
+
      (constantly
        {:status 404
         :headers {"Content-Type" "text/plain"}

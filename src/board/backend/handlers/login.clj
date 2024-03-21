@@ -2,16 +2,12 @@
   (:require
     [board.backend.database.users :as users-db]
     [board.backend.session :as session]
-    [board.util.exception-format :refer [map->invalid-req]]
     [board.util.pformat :refer [pformat]]
-    [clojure.tools.logging :as log]
     [cryptohash-clj.api :as crypto]
     [farolero.core :as far]
     [farolero.extensions.flow]
     [fmnoise.flow :as flow :refer [then]]
-    [malli.core :as malli]
-    [malli.error :as malli-error]
-    [malli.util :as malli-util]))
+    [taoensso.timbre :as log]))
 
 
 (defn get-password

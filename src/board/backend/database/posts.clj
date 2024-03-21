@@ -3,9 +3,9 @@
     [board.backend.database.schema :as schema]
     [board.util.pformat :refer [pformat]]
     [board.util.time :as date]
-    [clojure.tools.logging :as log]
     [cryptohash-clj.api :as crypto]
-    [datomic.api :as api]))
+    [datomic.api :as api]
+    [taoensso.timbre :as log]))
 
 
 (defn create-post!

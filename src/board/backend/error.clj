@@ -1,11 +1,11 @@
 (ns board.backend.error
   (:require
     [board.util.pformat :refer [pformat]]
-    [clojure.tools.logging :as log]
     [malli.core :as malli]
     [malli.error :as malli-error]
     [muuntaja.core :as muuntaja]
-    [reitit.ring.middleware.exception :as exception]))
+    [reitit.ring.middleware.exception :as exception]
+    [taoensso.timbre :as log]))
 
 
 (defn handle-invalid-data

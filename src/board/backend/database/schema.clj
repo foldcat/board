@@ -1,8 +1,8 @@
 (ns board.backend.database.schema
   "controls the database schema"
   (:require
-    [clojure.tools.logging :as log]
-    [datomic.api :as api]))
+    [datomic.api :as api]
+    [taoensso.timbre :as log]))
 
 
 (defonce conn

@@ -1,9 +1,9 @@
 (ns board.backend.rate-limit
   (:require
     [board.util.pformat :refer [pformat]]
-    [clojure.tools.logging :as log]
     [farolero.extensions.flow]
-    [fmnoise.flow :as flow]))
+    [fmnoise.flow :as flow]
+    [taoensso.timbre :as log]))
 
 
 (def ip-pool

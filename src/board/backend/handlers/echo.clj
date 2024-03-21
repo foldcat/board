@@ -1,7 +1,7 @@
 (ns board.backend.handlers.echo
   (:require
     [board.util.pformat :refer [pformat]]
-    [clojure.tools.logging :as log]))
+    [taoensso.timbre :as log]))
 
 
 (defn echo

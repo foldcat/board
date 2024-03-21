@@ -4,13 +4,13 @@
     [board.util.date-validation :as date-validation]
     [board.util.exception-format :refer [map->invalid-req]]
     [board.util.pformat :refer [pformat]]
-    [clojure.tools.logging :as log]
     [farolero.core :as far]
     [farolero.extensions.flow]
     [fmnoise.flow :as flow :refer [then]]
     [malli.core :as malli]
     [malli.error :as malli-error]
-    [malli.util :as malli-util]))
+    [malli.util :as malli-util]
+    [taoensso.timbre :as log]))
 
 
 (defn username-not-too-popular?

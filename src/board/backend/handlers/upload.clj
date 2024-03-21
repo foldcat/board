@@ -4,12 +4,12 @@
     [board.util.pformat :refer [pformat]]
     [clojure.java.io :as io]
     [clojure.math :as math]
-    [clojure.tools.logging :as log]
     [farolero.core :as far]
     [fmnoise.flow :as flow :refer [then]]
     [malli.core :as malli]
     [malli.error :as malli-error]
-    [malli.util :as malli-util])
+    [malli.util :as malli-util]
+    [taoensso.timbre :as log])
   (:import
     (java.io
       OutputStream)

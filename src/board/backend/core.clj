@@ -1,8 +1,8 @@
 (ns board.backend.core
   (:require
     [board.backend.routes :as routes]
-    [clojure.tools.logging :as log]
-    [org.httpkit.server :refer [run-server]]))
+    [org.httpkit.server :refer [run-server]]
+    [taoensso.timbre :as log]))
 
 
 (defonce server
